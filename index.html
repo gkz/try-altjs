@@ -1,0 +1,267 @@
+<html>
+	<head>
+		<title>Try altJS - JavaScript Compiler Test Suite</title>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+
+		<!-- CodeMirror includes -->
+		<script src="codemirror/lib/codemirror.js"></script>
+		<link rel="stylesheet" href="codemirror/lib/codemirror.css">
+		<script src="codemirror/mode/javascript/javascript.js"></script>
+		<link rel="stylesheet" href="codemirror/mode/javascript/javascript.css">
+
+		<!-- Compiler includes (needs a better system of lazy loading) -->
+		<script src="http://js11.org/11.min.js"></script>
+		<script src="http://weepy.github.com/kaffeine/js/kaffeine-browser.js"></script>
+		<script src="http://jashkenas.github.com/coffee-script/extras/coffee-script.js"></script>
+		<script src="https://github.com/satyr/coco/raw/master/extras/coco.js"></script>
+		<script src="http://www.skulpt.org/static/skulpt.js"></script>
+		<script src="http://www.opalscript.org/opal_dev.js"></script>
+		<script src="macros.sibilant" type="text/sibilant"></script>
+		<script src="https://github.com/jbr/sibilant/raw/master/lib/browser.js"></script>-->
+		<script src="macros.sibilant" type="text/sibilant"></script>
+		<script src="http://movelang.org/move.js"></script>
+		
+		<style type="text/css">
+			html {
+				overflow: hidden;
+				font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+			}
+			body {
+				height: 100%;
+			}
+			body > div {
+				position: fixed;
+			}
+			#sidebar {
+				width: 30%;
+				height: 100%;
+				top: 0;
+				left: 0;
+				background-color: #ADADAD;
+			}
+			#before {
+				right: 0;
+				top: 0;
+				width: 70%;
+				height: 50%;
+			}
+			#before:after {
+				content: "Input";
+				top: 0;
+			}
+			#before.error:after, #after.error:after {
+				background-color: #ff6666;
+				color: white;
+			}
+			#after:after {
+				content: "Output";
+				top: 50%;
+				margin-top: 1px;
+			}
+			#before:after, #after:after {
+				position: fixed;
+				padding: 0.5em;
+				right: 0;
+				width: 4em;
+				text-align: center;
+				background-color: #CCCCCC;
+			}
+			#after {
+				right: 0;
+				bottom: 0;
+				width: 70%;
+				height: 50%;
+				background-color: #dedede;
+			}
+			#menu {
+				padding: 1em;
+			}
+			ul {
+				padding-left: 1em;
+			}
+			li {
+				cursor: pointer;
+				color: blue;
+				list-style: none;
+				margin-bottom: 0.2em;
+			}
+			label.minor {
+				font-size: 0.8em;
+			}
+			#sidebar > #controls {
+				position: absolute;
+				bottom: 1em;
+				left: 0.8em;
+			}
+		</style>
+		<script type="text/javascript">
+			function toJavaScript(text) {
+				return text
+			}
+			function toJS11(text) {
+				return compiler.toJS(text)
+			}
+			function toJS11Cautious(text) {
+				return compiler.toJS(text)
+			}
+			function toKaffeine(text) {
+				return K.compile(text)
+			}
+			function toCoffeeScript(text) {
+				return CoffeeScript.compile(text)
+			}
+			function toOpal(text) {
+				return opal.compile(text)
+			}
+			function toCoco(text) {
+				return Coco.compile(text)
+			}
+			function toSkulpt(text) {
+				return Sk.compile(text).code
+			}
+			function toSibilant(text) {
+				return sibilant.translateAll(text)
+			}
+			function toMove(text) {
+				return move.compile(text)
+			}
+			
+			cases = [
+				{},
+				{
+					toJavaScript: "$(function () {\n\
+  var greeting = \"Hello, World!\";\n\
+  $(\"body\").append(\"<h1>\");\n\
+  $(\"h1\").last().text(greeting);\n\
+});",
+					toJS11: "$({\n\
+  *greeting = \"Hello, World!\"\n\
+  $(\"body\").append(\"<h1>\")\n\
+  $(\"h1\").last().text(greeting)\n\
+})",
+					toJS11Cautious: "$(\n\
+  *greeting = \"Hello, World!\"\n\
+  $(\"body\").append(\"<h1>\")\n\
+  $(\"h1\").last().text(greeting)\n\
+)\n\
+\"use caution\"",
+					toKaffeine: "$({\n\
+  greeting = \"Hello, World!\"\n\
+  $(\"body\").append \"<h1>\"\n\
+  $(\"h1\").last().text greeting\n\
+  return\n\
+})",
+					toCoffeeScript: "$ ->\n\
+  greeting = \"Hello, World!\"\n\
+  $(\"body\").append \"<h1>\"\n\
+  $(\"h1\").last().text greeting\n\
+  return",
+					toCoco: "<- $\n" + 
+"greeting = \"Hello, World!\"\n" +
+"$(\\" + "body)append \\" + "<h1>\n" +
+"$(\\" + "h1)last()text greeting\n" +
+"return",
+					toMove: "$ ^{\n\
+  greeting = \"Hello, World!\"\n\
+  $(\"body\").append \"<h1>\"\n\
+  $(\"h1\").last().text greeting\n\
+  return\n\
+}",
+					toOpal: "rquery do\n\
+  greeting = \"Hello, world!\"\n\
+  rquery(\"body\") << \"<h1>\"\n\
+  rquery(\"h1\").last.text = greeting\n\
+  return\n\
+end",
+					toSkulpt: "def appendGreeting ():\n\
+  greeting = \"Hello, World!\"\n\
+  jQuery(\"body\").append(\"<h1>\")\n\
+  jQuery(\"h1\").last().text(greeting)\n\
+\n\
+jQuery(appendGreeting)",
+					toSibilant: "($(lambda ()\n\
+  (defvar greeting \"Hello, World!\")\n\
+  (chain ($ \"body\")(append \"<h1>\"))\n\
+  (chain ($ \"h1\")(last)(text greeting))\n\
+  (return)\n\
+))"
+				}
+			]
+			
+			// Compilers requiring explicit instantiation
+			var compiler = new JS11.Compiler
+			var K = new (require("kaffeine"))
+			
+			// Set initial state
+			var test = 1
+			var language = toJavaScript
+		</script>
+	</head>
+	<body>
+		<div id="sidebar">
+			<div id="menu">
+				Source Language:
+				<ul onclick="update()">
+					<li onclick="language = toCoco">Coco</li>
+					<li onclick="language = toCoffeeScript">CoffeeScript</li>
+					<li onclick="language = toJavaScript">JavaScript (default)</li>
+					<li onclick="language = toJS11">JS11</li>
+					<li onclick="language = toKaffeine">Kaffeine</li>
+					<li onclick="language = toMove">Move</li>
+					<li onclick="language = toOpal">Opal w. rquery</li>
+					<li onclick="language = toSibilant">Sibilant</li>
+					<li onclick="language = toSkulpt">Skulpt</li>
+				</ul>
+				Examples:
+				<ul onclick="update()">
+					<li onclick="test = 1">jQuery "Hello, World!"</li>
+					<li onclick="test = 0">(none)</li>
+				</ul>
+			</div>
+			<div id="controls"><input type="checkbox" checked="checked" disabled="disabled" id="normalize"> <label for="normalize" class="minor">Normalize return values</label></div>
+		</div>
+		<div id="before">
+			<div id="editor">
+			</div>
+		</div>
+		<div id="after">
+			<div id="viewer">
+			</div>
+		</div>
+		<script type="text/javascript">
+			// CodeMirror setup and live updating
+			var viewer = CodeMirror(document.getElementById("viewer"), {
+				lineNumbers: true,
+				mode: "javascript",
+				readOnly: true
+			});
+			var editor = CodeMirror(document.getElementById("editor"), {
+				lineNumbers: true,
+				mode: "text/plain",
+				onChange: recompile,
+				tabMode: "shift"
+			});
+			// Initialize
+			update()
+			// Functions to update editor and viewer content
+			function recompile() {
+				if (viewer && editor && editor.getValue) {	
+					try {
+						viewer.setValue(language(editor.getValue()).replace(/^\s+|\s+$/g,""))
+						document.getElementById("before").className = ""
+					}
+					catch (err) { document.getElementById("before").className = "error" }
+					try {
+						var test = new Function(viewer.getValue())
+						document.getElementById("after").className = ""
+					}
+					catch (err) { document.getElementById("after").className = "error" }
+				}
+			}
+			function update() {
+				if (test > 0 && editor) { editor.setValue(cases[test][language.name].replace(/^\s+|\s+$/g,"")) }
+				else { if (editor) { editor.setValue(""); editor.focus() } recompile() }
+			}
+		</script>
+	</body>
+</html>
