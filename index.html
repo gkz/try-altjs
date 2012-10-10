@@ -14,6 +14,7 @@
 		<script src="http://weepy.github.com/kaffeine/js/kaffeine-browser.js"></script>
 		<script src="http://jashkenas.github.com/coffee-script/extras/coffee-script.js"></script>
 		<script src="https://github.com/satyr/coco/raw/master/extras/coco.js"></script>
+		<script src="https://raw.github.com/gkz/LiveScript/master/extras/livescript.js"></script>
 		<script src="http://www.skulpt.org/static/skulpt.js"></script>
 		<script src="http://www.opalscript.org/opal_dev.js"></script>
 		<script src="macros.sibilant" type="text/sibilant"></script>
@@ -116,6 +117,9 @@
 			function toCoco(text) {
 				return Coco.compile(text)
 			}
+			function toLiveScript(text) {
+				return LiveScript.compile(text)
+			}
 			function toSkulpt(text) {
 				return Sk.compile(text).code
 			}
@@ -161,6 +165,10 @@
 "$(\\" + "body)append \\" + "<h1>\n" +
 "$(\\" + "h1)last()text greeting\n" +
 "return",
+					toLiveScript: "<-! $\n\
+greeting = 'Hello, World!'\n\
+$ \\body .append '<h1>'\n\
+$ \h1 .last!text greeting\n",
 					toMove: "$ ^{\n\
   greeting = \"Hello, World!\"\n\
   $(\"body\").append \"<h1>\"\n\
@@ -207,6 +215,7 @@ jQuery(appendGreeting)",
 					<li onclick="language = toJavaScript">JavaScript (default)</li>
 					<li onclick="language = toJS11">JS11</li>
 					<li onclick="language = toKaffeine">Kaffeine</li>
+					<li onclick="language = toLiveScript">LiveScript</li>
 					<li onclick="language = toMove">Move</li>
 					<li onclick="language = toOpal">Opal w. rquery</li>
 					<li onclick="language = toSibilant">Sibilant</li>
